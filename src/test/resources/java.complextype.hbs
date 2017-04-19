@@ -1,0 +1,11 @@
+    public static CobolComplexType create{{complexTypeName}}() {
+        CobolComplexType.Builder builder = new CobolComplexType.Builder();
+        builder.name("{{complexTypeName}}");
+        builder.cobolName("{{cobolName}}");
+        builder.fields(create{{complexTypeName}}Fields());
+{{~#if isOptional}}
+                {{~#if dependingOn}}
+        builder.dependingOn("{{dependingOn}}");{{/if}}
+{{~/if ~}}{{!-- isOptional --}}
+        return builder.build();
+    }

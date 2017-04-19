@@ -1,0 +1,83 @@
+{
+  "metadata": {
+    "spec-version": "1.0"
+  },
+  "configuration-groups": [
+    {
+      "label": "COBOL to Avro Record Converter Configuration",
+      "properties": [
+        {
+          "widget-type": "textarea",
+          "label": "Copybook",
+          "name": "copybook",
+          "widget-attributes": {
+            "rows": "4"
+          },
+          "plugin-function": {
+            "method": "POST",
+            "widget": "outputSchema",
+            "output-property": "schema",
+            "plugin-method": "outputSchema",
+            "required-fields": ["copybook"],
+            "missing-required-fields-message": "'Copybook' is required to fetch schema."
+          }
+        },
+        {
+          "widget-type": "select",
+          "label": "Code Format for Copybook",
+          "name": "codeFormat",
+          "widget-attributes": {
+            "values": [
+              "FIXED_FORMAT",
+              "FREE_FORMAT"
+            ],
+            "default": "FIXED_FORMAT"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Charset",
+          "name": "charset",
+          "widget-attributes": {
+            "default": "IBM01140"
+          }
+        },
+        {
+          "widget-type": "select",
+          "label": "Records start with Record Descriptor Word",
+          "name": "rdw",
+          "widget-attributes": {
+            "values": [
+              "true",
+              "false"
+            ],
+            "default": "true"
+          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Name of the field containing COBOL records",
+          "name": "fieldName"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "schema",
+      "widget-type": "schema",
+      "widget-attributes": {
+        "schema-types": [
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "schema-default-type": "string"
+      }
+    }
+  ]
+}
