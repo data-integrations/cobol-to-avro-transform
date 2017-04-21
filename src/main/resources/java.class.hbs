@@ -1,0 +1,58 @@
+{{#if target_package_name}}package {{target_package_name}};{{/if}}
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import com.legstar.base.type.CobolType;
+import com.legstar.base.type.composite.*;
+import com.legstar.base.type.primitive.*;
+
+public class {{class_name}} extends CobolComplexType {
+
+    public {{class_name}}() {
+        super(new CobolComplexType.Builder()
+                    .name("{{root_type_name}}")
+                    .cobolName("{{root_cobol_name}}")
+                    .fields(create{{root_type_name}}Fields())
+              );
+    }
+{{#each complex_types}}
+    private static Map create{{@key}}Fields() {
+
+        Map fields = new LinkedHashMap();
+{{#each this ~}}
+{{> java.field}}
+{{~/each}}{{!-- this: fields in complex type --}}
+        return fields;
+
+    }
+{{/each}}{{!-- complex_types --}}
+{{~#each choice_types}}
+    private static Map create{{@key}}Fields() {
+
+        Map fields = new LinkedHashMap();
+{{#each this ~}}
+{{> java.field}}
+{{~/each}}{{!-- this: fields in choice type --}}
+        return fields;
+
+    }
+
+{{~/each}}{{!-- choice_types --}}
+{{~#each complex_types}}
+{{~#each this }}
+{{~#if complexType }}
+{{> java.complextype}}
+{{/if ~}}{{!-- complexType --}}
+{{~/each}}{{!-- this: fields in complex type --}}
+{{~/each}}{{!-- complex_types --}}
+{{~#each choice_types}}
+{{~#each this }}
+{{~#if complexType }}
+{{> java.complextype}}
+{{/if ~}}{{!-- complexType --}}
+{{~/each}}{{!-- this: fields in complex type --}}
+{{~/each}}{{!-- choice_types --}}
+
+}
+

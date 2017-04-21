@@ -1,0 +1,217 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>co.cask</groupId>
+  <artifactId>cobol-to-avro-transform</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <properties>
+    <avro.version>1.7.7</avro.version>
+    <cdap.version>4.1.0</cdap.version>
+    <guava.version>18.0</guava.version>
+    <janino.version>3.0.7</janino.version>
+    <legstar.avro.version>0.4.2</legstar.avro.version>
+    <logback.version>1.2.3</logback.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- properties for script build step that creates the config files for the artifacts -->
+    <widgets.dir>widgets</widgets.dir>
+    <docs.dir>docs</docs.dir>
+
+    <!-- This is the version range for the app.parents that this plugin is valid for. Usually this will correspond with
+     the CDAP version, but not always. -->
+    <etl.versionRange>[3.3.0,10.0.0-SNAPSHOT)</etl.versionRange>
+
+    <!-- These are the application template artifacts that this plugin will be available for. -->
+    <app.parents>
+      system:cdap-etl-batch,
+      system:cdap-data-pipeline,
+      system:cdap-data-streams
+    </app.parents>
+
+    <!-- this is here because project.basedir evaluates to null in the script build step -->
+    <main.basedir>${project.basedir}</main.basedir>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-api</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-etl-api</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.janino</groupId>
+      <artifactId>janino</artifactId>
+      <version>3.0.7</version>
+    </dependency>
+    <dependency>
+      <groupId>com.legsem.legstar</groupId>
+      <artifactId>legstar.avro.cob2avro</artifactId>
+      <version>${legstar.avro.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-formats</artifactId>
+      <version>${cdap.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>create-artifact-config</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <target>
+                <script language="javascript"><![CDATA[
+                  // for some reason, project.basedir evaluates to null if we just get the property here.
+                  // so we set main.basedir to project.basedir in the pom properties, then main.basedir is used here
+                  // where it evaluates correctly for whatever reason
+                  var baseDir = project.getProperty("main.basedir");
+                  var targetDir = project.getProperty("project.build.directory");
+                  var artifactId = project.getProperty("project.artifactId");
+                  var version = project.getProperty("project.version");
+                  var cfgFile = new java.io.File(targetDir, artifactId + "-" + version + ".json");
+                  if (!cfgFile.exists()) {
+                    cfgFile.createNewFile();
+                  }
+                  var parents = project.getProperty("app.parents").split(",");
+                  var parentVersions = project.getProperty("etl.versionRange");
+                  var config = {
+                    "parents": [ ],
+                    "properties": {}
+                  }
+                  for (i = 0; i < parents.length; i++) {
+                    config.parents.push(parents[i].trim() + parentVersions);
+                  }
+                  // look in widgets directory for widget config for each plugin
+                  var widgetsDir = new java.io.File(baseDir, project.getProperty("widgets.dir"));
+                  if (widgetsDir.isDirectory()) {
+                    var widgetsFiles = widgetsDir.listFiles();
+                    for (i = 0; i < widgetsFiles.length; i++) {
+                      var widgetsFile = widgetsFiles[i];
+                      if (widgetsFile.isFile()) {
+                        var propertyName = "widgets." + widgetsFile.getName();
+                        // if the filename ends with .json
+                        if (propertyName.indexOf(".json", propertyName.length - 5) !== -1) {
+                          // strip the .json
+                          propertyName = propertyName.slice(0, -5);
+                          var contents = new java.lang.String(java.nio.file.Files.readAllBytes(widgetsFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                          var contentsAsJson = JSON.parse(contents);
+                          config.properties[propertyName] = JSON.stringify(contentsAsJson);
+                        }
+                      }
+                    }
+                  }
+                  // look in the docs directory for docs for each plugin
+                  var docsDir = new java.io.File(baseDir, project.getProperty("docs.dir"));
+                  if (docsDir.isDirectory()) {
+                    var docFiles = docsDir.listFiles();
+                    for (i = 0; i < docFiles.length; i++) {
+                      var docFile = docFiles[i];
+                      if (docFile.isFile()) {
+                        var propertyName = "doc." + docFile.getName();
+                        // if the filename ends with .md
+                        if (propertyName.indexOf(".md", propertyName.length - 3) !== -1) {
+                          // strip the extension
+                          propertyName = propertyName.slice(0, -3);
+                          var contents = new java.lang.String(java.nio.file.Files.readAllBytes(docFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                          config.properties[propertyName] = contents + "";
+                        }
+                      }
+                    }
+                  }
+                  var fw = new java.io.BufferedWriter(new java.io.FileWriter(cfgFile.getAbsoluteFile()));
+                  fw.write(JSON.stringify(config, null, 2));
+                  fw.close();
+                ]]></script>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.5.4</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <_exportcontents>
+              co.cask.*;
+              com.google.common.*;
+              com.legstar.*
+            </_exportcontents>
+            <Embed-Dependency>*;inline=false;scope=compile</Embed-Dependency>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Directory>lib</Embed-Directory>
+          </instructions>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

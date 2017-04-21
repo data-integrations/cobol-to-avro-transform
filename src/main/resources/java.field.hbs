@@ -1,0 +1,72 @@
+{{~#if complexType}}
+        CobolComplexType {{@key}} = create{{complexTypeName}}();
+{{~#if maxOccurs}}
+        CobolArrayType.Builder {{@key}}ArrayBuilder = new CobolArrayType.Builder();
+        {{@key}}ArrayBuilder.itemType({{@key}});
+        {{@key}}ArrayBuilder.minOccurs({{minOccurs}});
+        {{@key}}ArrayBuilder.maxOccurs({{maxOccurs}});
+        {{~#if dependingOn}}
+        {{@key}}ArrayBuilder.dependingOn("{{dependingOn}}");{{/if}}
+        CobolArrayType {{@key}}Array = {{@key}}ArrayBuilder.build();
+        fields.put("{{@key}}", {{@key}}Array);
+{{~else}}
+        fields.put("{{@key}}", {{@key}});
+{{~/if ~}}{{!-- maxOccurs --}}
+{{~else}}
+{{~#if choiceType}}
+        CobolChoiceType.Builder {{@key}}ChoiceBuilder = new CobolChoiceType.Builder();
+        {{@key}}ChoiceBuilder.name("{{choiceTypeName}}");
+        {{@key}}ChoiceBuilder.alternatives(create{{choiceTypeName}}Fields());
+        CobolChoiceType {{@key}} = {{@key}}ChoiceBuilder.build();
+{{~#if maxOccurs}}
+        CobolArrayType.Builder {{@key}}ArrayBuilder = new CobolArrayType.Builder();
+        {{@key}}ArrayBuilder.itemType({{@key}});
+        {{@key}}ArrayBuilder.minOccurs({{minOccurs}});
+        {{@key}}ArrayBuilder.maxOccurs({{maxOccurs}});
+        {{~#if dependingOn}}
+        {{@key}}ArrayBuilder.dependingOn("{{dependingOn}}");{{/if}}
+        CobolArrayType {{@key}}Array = {{@key}}ArrayBuilder.build();
+        fields.put("{{@key}}", {{@key}}Array);
+{{~else}}
+        fields.put("{{@key}}", {{@key}});
+{{~/if ~}}{{!-- maxOccurs --}}
+{{~else}}
+        {{cobolTypeName}}.Builder{{#if javaTypeName}} {{/if}} {{@key}}Builder = new {{cobolTypeName}}.Builder{{#if javaTypeName}} {{/if}}({{#if javaTypeName}}{{javaTypeName}}.class{{/if}});
+        {{@key}}Builder.cobolName("{{cobolName}}");
+        {{~#if signed}}
+        {{@key}}Builder.signed({{signed}});{{/if}}
+        {{~#if signLeading}}
+        {{@key}}Builder.signLeading({{signLeading}});{{/if}}
+        {{~#if signSeparate}}
+        {{@key}}Builder.signSeparate({{signSeparate}});{{/if}}
+        {{~#if totalDigits}}
+        {{@key}}Builder.totalDigits({{totalDigits}});{{/if}}
+        {{~#if fractionDigits}}
+        {{@key}}Builder.fractionDigits({{fractionDigits}});{{/if}}
+        {{~#if charNum}}
+        {{@key}}Builder.charNum({{charNum}});{{/if}}
+        {{~#if minInclusive}}
+        {{@key}}Builder.minInclusive({{javaTypeName}}.valueOf("{{minInclusive}}"));{{/if}}
+        {{~#if maxInclusive}}
+        {{@key}}Builder.maxInclusive({{javaTypeName}}.valueOf("{{maxInclusive}}"));{{/if}}
+        {{~#if odoObject}}
+        {{@key}}Builder.odoObject(true);{{/if}}
+{{~#if isOptional}}
+        {{~#if dependingOn}}
+        {{@key}}Builder.dependingOn("{{dependingOn}}");{{/if}}
+{{~/if ~}}{{!-- isOptional --}}
+        {{cobolTypeName}}{{#if javaTypeName}} {{/if}} {{@key}} = {{@key}}Builder.build();
+{{~#if maxOccurs}}
+        CobolArrayType.Builder {{@key}}ArrayBuilder = new CobolArrayType.Builder();
+        {{@key}}ArrayBuilder.itemType({{@key}});
+        {{@key}}ArrayBuilder.minOccurs({{minOccurs}});
+        {{@key}}ArrayBuilder.maxOccurs({{maxOccurs}});
+        {{~#if dependingOn}}
+        {{@key}}ArrayBuilder.dependingOn("{{dependingOn}}");{{/if}}
+        CobolArrayType {{@key}}Array = {{@key}}ArrayBuilder.build();
+        fields.put("{{@key}}", {{@key}}Array);
+{{~else}}
+        fields.put("{{@key}}", {{@key}});
+{{~/if ~}}{{!-- maxOccurs --}}
+{{~/if ~}}{{!-- choiceType --}}
+{{~/if ~}}{{!-- complexType --}}
