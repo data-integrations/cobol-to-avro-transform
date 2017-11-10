@@ -1,7 +1,8 @@
 {
   "metadata": {
-    "spec-version": "1.0"
+    "spec-version": "1.5"
   },
+  "display-name": "COBOL to Avro Converter",
   "configuration-groups": [
     {
       "label": "COBOL to Avro Record Converter Configuration",
