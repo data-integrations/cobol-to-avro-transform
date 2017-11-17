@@ -1,6 +1,7 @@
 Cobol to Avro Converter
 ===================================
 
+![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 <a href="https://cdap-users.herokuapp.com/"><img alt="Join CDAP community" src="https://cdap-users.herokuapp.com/badge.svg?t=cobol-to-avro-transform"/></a>
 [![Build Status](https://travis-ci.org/hydrator/cobol-to-avro-transform.svg?branch=develop)](https://travis-ci.org/hydrator/cobol-to-avro-transform) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) <img src="https://cdap-users.herokuapp.com/assets/cdap-action.svg"/>
 
