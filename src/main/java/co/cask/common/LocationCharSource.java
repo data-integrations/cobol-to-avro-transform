@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,26 +14,31 @@
  * the License.
  */
 
-package io.cdap.plugin.common;
+package co.cask.common;
 
 import com.google.common.io.CharSource;
+import org.apache.twill.filesystem.Location;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 /**
- * {@link CharSource} for the {@link InputStream}
+ * A {@link CharSource} for {@link Location}.
  */
-public class StreamCharSource extends CharSource {
-  private final InputStream is;
-  public StreamCharSource(InputStream is) {
-    this.is = is;
+public class LocationCharSource extends CharSource {
+
+  private final Location location;
+  private final Charset charset;
+
+  public LocationCharSource(Location location, Charset charset) {
+    this.location = location;
+    this.charset = charset;
   }
+
   @Override
   public Reader openStream() throws IOException {
-    return new InputStreamReader(is, StandardCharsets.UTF_8);
+    return new InputStreamReader(location.getInputStream(), charset);
   }
 }

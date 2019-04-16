@@ -24,7 +24,7 @@
         </encoder>
     </appender>
 
-    <logger name="io.cdap" level="DEBUG" />
+    <logger name="co.cask" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="Console"/>

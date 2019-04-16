@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,24 +14,25 @@
  * the License.
  */
 
-package io.cdap.plugin.cobol;
+package co.cask.plugin;
 
+import co.cask.cdap.api.annotation.Description;
+import co.cask.cdap.api.annotation.Macro;
+import co.cask.cdap.api.annotation.Name;
+import co.cask.cdap.api.annotation.Plugin;
+import co.cask.cdap.api.data.format.StructuredRecord;
+import co.cask.cdap.api.plugin.EndpointPluginContext;
+import co.cask.cdap.api.plugin.PluginConfig;
+import co.cask.cdap.etl.api.Emitter;
+import co.cask.cdap.etl.api.Transform;
+import co.cask.cdap.etl.api.TransformContext;
+import co.cask.cdap.format.StructuredRecordStringConverter;
+import co.cask.cobol.CopybookReader;
+import co.cask.common.AvroConverter;
+import co.cask.common.StreamByteSource;
+import co.cask.common.StreamCharSource;
 import com.legstar.avro.cob2avro.io.AbstractZosDatumReader;
 import com.legstar.cob2xsd.Cob2XsdConfig;
-import io.cdap.cdap.api.annotation.Description;
-import io.cdap.cdap.api.annotation.Macro;
-import io.cdap.cdap.api.annotation.Name;
-import io.cdap.cdap.api.annotation.Plugin;
-import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.cdap.api.plugin.EndpointPluginContext;
-import io.cdap.cdap.api.plugin.PluginConfig;
-import io.cdap.cdap.etl.api.Emitter;
-import io.cdap.cdap.etl.api.Transform;
-import io.cdap.cdap.etl.api.TransformContext;
-import io.cdap.cdap.format.StructuredRecordStringConverter;
-import io.cdap.plugin.common.AvroConverter;
-import io.cdap.plugin.common.StreamByteSource;
-import io.cdap.plugin.common.StreamCharSource;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class CobolRecordConverter extends Transform<StructuredRecord, Structured
 
   private CopybookReader copybookReader;
   private Schema avroSchema;
-  private io.cdap.cdap.api.data.schema.Schema schema;
+  private co.cask.cdap.api.data.schema.Schema schema;
 
   @Override
   public void initialize(TransformContext context) throws Exception {
@@ -106,7 +107,7 @@ public class CobolRecordConverter extends Transform<StructuredRecord, Structured
    * @throws IOException if there are any errors converting schema
    */
   @javax.ws.rs.Path("outputSchema")
-  public io.cdap.cdap.api.data.schema.Schema getSchema(GetSchemaRequest request,
+  public co.cask.cdap.api.data.schema.Schema getSchema(GetSchemaRequest request,
                                                        EndpointPluginContext pluginContext) throws IOException {
     Properties properties = new Properties();
     properties.setProperty(Cob2XsdConfig.CODE_FORMAT, request.getCodeFormat());
