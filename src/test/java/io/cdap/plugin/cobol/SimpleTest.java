@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,14 +14,14 @@
  * the License.
  */
 
-package co.cask.cobol;
+package io.cdap.plugin.cobol;
 
-import co.cask.cdap.api.data.format.StructuredRecord;
-import co.cask.cdap.api.data.schema.Schema;
-import co.cask.cdap.format.StructuredRecordStringConverter;
-import co.cask.common.AvroConverter;
 import com.google.common.io.Resources;
 import com.legstar.avro.cob2avro.io.AbstractZosDatumReader;
+import io.cdap.cdap.api.data.format.StructuredRecord;
+import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.cdap.format.StructuredRecordStringConverter;
+import io.cdap.plugin.common.AvroConverter;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -63,7 +63,7 @@ public class SimpleTest {
            copybookReader.createRecordReader(Resources.asByteSource(dataURL), "IBM01140", true)) {
       for (GenericRecord record : reader) {
         StructuredRecord structuredRecord = AvroConverter.fromAvroRecord(record, schema);
-        LOG.info(StructuredRecordStringConverter.toJsonString(structuredRecord));
+        LOG.trace(StructuredRecordStringConverter.toJsonString(structuredRecord));
       }
     }
   }

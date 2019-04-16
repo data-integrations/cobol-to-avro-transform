@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Cask Data, Inc.
+ * Copyright © 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package co.cask.cobol;
+package io.cdap.plugin.cobol;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
@@ -75,13 +75,13 @@ public class CopybookReader {
 
       // Generate XML schema from the copybook
       XmlSchema xmlSchema = new XmlSchemaCollection().read(
-        cob2xsd.emitXsd(cobolDataItems, "co.cask.cobol").getSchemaDocument());
+        cob2xsd.emitXsd(cobolDataItems, "io.cdap.plugin.cobol").getSchemaDocument());
 
       // Convert XML schema to Avro schema
       Schema avroSchema = translate(xmlSchema);
 
       // Generate the CobolType classes ClassLoader
-      this.cobolTypeClassLoader = createCobolTypesClassLoader(xmlSchema, "co.cask.cobol");
+      this.cobolTypeClassLoader = createCobolTypesClassLoader(xmlSchema, "io.cdap.plugin.cobol");
       this.avroSchema = avroSchema;
     } catch (RecognizerException e) {
       throw new IOException("Failed to parse cobol copybook: " + System.lineSeparator()
@@ -170,7 +170,7 @@ public class CopybookReader {
    */
   private Schema translate(XmlSchema xmlSchema) throws Xsd2AvroTranslatorException {
     Xsd2AvroTranslator avroTranslator = new Xsd2AvroTranslator();
-    return new Schema.Parser().parse(avroTranslator.translate(xmlSchema, "co.cask.cobol", "schema"));
+    return new Schema.Parser().parse(avroTranslator.translate(xmlSchema, "io.cdap.plugin.cobol", "schema"));
   }
 
   /**
