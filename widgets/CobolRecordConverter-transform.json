@@ -14,14 +14,11 @@
           "widget-attributes": {
             "rows": "4"
           },
-          "plugin-function": {
-            "method": "POST",
-            "widget": "outputSchema",
-            "output-property": "schema",
-            "plugin-method": "outputSchema",
-            "required-fields": ["copybook"],
-            "missing-required-fields-message": "'Copybook' is required to fetch schema."
-          }
+        },
+        {
+          "widget-type": "textbox",
+          "label": "Name of the field containing COBOL records",
+          "name": "contentFieldName"
         },
         {
           "widget-type": "select",
@@ -55,11 +52,6 @@
             "default": "true"
           }
         },
-        {
-          "widget-type": "textbox",
-          "label": "Name of the field containing COBOL records",
-          "name": "fieldName"
-        }
       ]
     }
   ],

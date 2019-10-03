@@ -17,31 +17,24 @@
 package io.cdap.plugin.cobol;
 
 import com.legstar.avro.cob2avro.io.AbstractZosDatumReader;
-import com.legstar.cob2xsd.Cob2XsdConfig;
 import io.cdap.cdap.api.annotation.Description;
-import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
 import io.cdap.cdap.api.data.format.StructuredRecord;
-import io.cdap.cdap.api.plugin.EndpointPluginContext;
-import io.cdap.cdap.api.plugin.PluginConfig;
+import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.etl.api.Emitter;
+import io.cdap.cdap.etl.api.FailureCollector;
+import io.cdap.cdap.etl.api.PipelineConfigurer;
 import io.cdap.cdap.etl.api.Transform;
 import io.cdap.cdap.etl.api.TransformContext;
 import io.cdap.cdap.format.StructuredRecordStringConverter;
 import io.cdap.plugin.common.AvroConverter;
 import io.cdap.plugin.common.StreamByteSource;
-import io.cdap.plugin.common.StreamCharSource;
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
-import javax.annotation.Nullable;
 
 /**
  * {@link Transform} plugin to convert COBOL data file into StructuredRecords.
@@ -52,31 +45,37 @@ import javax.annotation.Nullable;
 public class CobolRecordConverter extends Transform<StructuredRecord, StructuredRecord> {
   private static final Logger LOG = LoggerFactory.getLogger(CobolRecordConverter.class);
 
-  private final Config config;
+  private final CobolRecordConverterConfig config;
 
-  public CobolRecordConverter(Config config) {
+  public CobolRecordConverter(CobolRecordConverterConfig config) {
     this.config = config;
   }
 
   private CopybookReader copybookReader;
-  private Schema avroSchema;
-  private io.cdap.cdap.api.data.schema.Schema schema;
+  private Schema schema;
 
   @Override
   public void initialize(TransformContext context) throws Exception {
     super.initialize(context);
-    Properties properties = new Properties();
-    properties.setProperty(Cob2XsdConfig.CODE_FORMAT, config.getCodeFormat());
-    StreamCharSource streamCharSource
-      = new StreamCharSource(new ByteArrayInputStream(config.copybook.getBytes(StandardCharsets.UTF_8)));
-    copybookReader = new CopybookReader(streamCharSource, properties);
-    this.avroSchema = copybookReader.getSchema();
-    this.schema = AvroConverter.fromAvroSchema(avroSchema);
+    this.copybookReader = config.getCopybookReader();
+    this.schema = config.getOutputSchemaAndValidate(copybookReader);
+  }
+
+  @Override
+  public void configurePipeline(PipelineConfigurer pipelineConfigurer) {
+    super.configurePipeline(pipelineConfigurer);
+
+    FailureCollector failureCollector = pipelineConfigurer.getStageConfigurer().getFailureCollector();
+    io.cdap.cdap.api.data.schema.Schema inputSchema = pipelineConfigurer.getStageConfigurer().getInputSchema();
+    Schema outputSchema = config.getOutputSchemaAndValidate(failureCollector, inputSchema);
+    failureCollector.getOrThrowException();
+
+    pipelineConfigurer.getStageConfigurer().setOutputSchema(outputSchema);
   }
 
   @Override
   public void transform(StructuredRecord input, Emitter<StructuredRecord> emitter) throws Exception {
-    byte[] body = input.get(config.fieldName);
+    byte[] body = input.get(config.getContentFieldName());
     StreamByteSource source = new StreamByteSource(new ByteArrayInputStream(body), body.length);
     try (AbstractZosDatumReader<GenericRecord> reader = copybookReader.createRecordReader(source, config.getCharset(),
                                                                                           config.hasRDW())) {
@@ -84,69 +83,6 @@ public class CobolRecordConverter extends Transform<StructuredRecord, Structured
         LOG.info(StructuredRecordStringConverter.toJsonString(AvroConverter.fromAvroRecord(record, schema)));
         emitter.emit(AvroConverter.fromAvroRecord(record, schema));
       }
-    }
-  }
-
-  class GetSchemaRequest {
-    public String copybook;
-    @Nullable
-    public String codeFormat;
-
-    private String getCodeFormat() {
-      return codeFormat == null ? Cob2XsdConfig.CodeFormat.FIXED_FORMAT.name() : codeFormat;
-    }
-  }
-
-  /**
-   * Endpoint method to get the output schema given copybook.
-   *
-   * @param request {@link GetSchemaRequest} containing information about the cobol copybook.
-   * @param pluginContext context to create plugins
-   * @return schema of fields
-   * @throws IOException if there are any errors converting schema
-   */
-  @javax.ws.rs.Path("outputSchema")
-  public io.cdap.cdap.api.data.schema.Schema getSchema(GetSchemaRequest request,
-                                                       EndpointPluginContext pluginContext) throws IOException {
-    Properties properties = new Properties();
-    properties.setProperty(Cob2XsdConfig.CODE_FORMAT, request.getCodeFormat());
-    StreamCharSource streamCharSource
-      = new StreamCharSource(new ByteArrayInputStream(request.copybook.getBytes(StandardCharsets.UTF_8)));
-    CopybookReader reader = new CopybookReader(streamCharSource, properties);
-    Schema avroSchema  = reader.getSchema();
-    return AvroConverter.fromAvroSchema(avroSchema);
-  }
-
-  public static final class Config extends PluginConfig {
-    @Description("COBOL Copybook")
-    @Macro
-    private String copybook;
-
-    @Description("CodeFormat in the Copybook")
-    @Nullable
-    private String codeFormat;
-
-    @Description("Charset used to read the data. Default Charset is 'IBM01140'.")
-    @Nullable
-    private String charset;
-
-    @Description("Records start with Record Descriptor Word")
-    @Nullable
-    private Boolean rdw;
-
-    @Description("Name of the field containing COBOL records")
-    private String fieldName;
-
-    public String getCodeFormat() {
-      return codeFormat == null ? Cob2XsdConfig.CodeFormat.FIXED_FORMAT.name() : codeFormat;
-    }
-
-    public String getCharset() {
-      return charset == null ? "IBM01140" : charset;
-    }
-
-    public boolean hasRDW() {
-      return rdw == null ? true : rdw;
     }
   }
 }
