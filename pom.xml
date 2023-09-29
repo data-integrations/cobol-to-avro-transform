@@ -25,7 +25,7 @@
   <name>Cobol to Avro Transform</name>
 
   <properties>
-    <avro.version>1.7.7</avro.version>
+    <avro.version>1.11.3</avro.version>
     <cdap.version>6.1.0-SNAPSHOT</cdap.version>
     <guava.version>18.0</guava.version>
     <janino.version>3.0.7</janino.version>
