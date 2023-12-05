@@ -30,7 +30,7 @@
     <guava.version>18.0</guava.version>
     <janino.version>3.0.7</janino.version>
     <legstar.avro.version>0.4.2</legstar.avro.version>
-    <logback.version>1.2.3</logback.version>
+    <logback.version>1.2.13</logback.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <data.stream.parent>system:cdap-data-streams[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.stream.parent>
     <data.pipeline.parent>system:cdap-data-pipeline[6.1.0-SNAPSHOT,7.0.0-SNAPSHOT)</data.pipeline.parent>
